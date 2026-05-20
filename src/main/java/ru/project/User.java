@@ -23,13 +23,13 @@ public class User {
     private LocalDateTime createdAt;
 
     public User() {
-
     }
 
     public User(String name, String email, Integer age) {
         this.name = name;
         this.email = email;
         this.age = age;
+        this.createdAt = LocalDateTime.now();
     }
 
     public Long getId() { return id; }
@@ -44,8 +44,9 @@ public class User {
     public Integer getAge() { return age; }
     public void setAge(Integer age) { this.age = age; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 
     @Override
     public String toString() {

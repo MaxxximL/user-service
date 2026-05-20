@@ -1,31 +1,40 @@
 package ru.project;
 
-import java.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Scanner;
 
 public class UserService {
-    private final UserDao userDao = new UserDao();
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
+    private final UserDao userDao = new UserDaoImpl();
     private final Scanner scanner = new Scanner(System.in);
 
     public void start() {
+        log.info("UserService запущен...");
         while (true) {
             printMenu();
-            int choice = scanner.nextInt();
-            scanner.nextLine();
+            try {
+                int choice = Integer.parseInt(scanner.nextLine().trim());
 
-            switch (choice) {
-                case 1 -> createUser();
-                case 2 -> getUser();
-                case 3 -> getAllUsers();
-                case 4 -> updateUser();
-                case 5 -> deleteUser();
-                case 0 -> {
-                    System.out.println("Выход..");
-                    HibernateUtil.shutdown();
-                    return;
+                switch (choice) {
+                    case 1 -> createUser();
+                    case 2 -> getUser();
+                    case 3 -> getAllUsers();
+                    case 4 -> updateUser();
+                    case 5 -> deleteUser();
+                    case 0 -> {
+                        System.out.println("Выход из программы...");
+                        HibernateUtil.shutdown();
+                        return;
+                    }
+                    default -> System.out.println("Неверный выбор!");
                 }
-                default -> System.out.println("Неверный выбор!");
+            } catch (Exception e) {
+                log.error("Ошибка при обработке команды", e);
+                System.out.println("Ошибка ввода! Попробуйте ещё раз.");
             }
         }
     }
@@ -48,34 +57,37 @@ public class UserService {
             System.out.print("Email: ");
             String email = scanner.nextLine();
             System.out.print("Возраст: ");
-            Integer age = scanner.nextInt();
-            scanner.nextLine();
+            Integer age = Integer.parseInt(scanner.nextLine());
 
             User user = new User(name, email, age);
-            user.setCreatedAt(LocalDateTime.now());
-
             userDao.saveUser(user);
+
+            System.out.println("Пользователь успешно создан!");
         } catch (Exception e) {
-            System.out.println("Ошибка при создании пользователя: " + e.getMessage());
+            log.error("Ошибка создания пользователя", e);
+            System.out.println("Ошибка при создании: " + e.getMessage());
         }
     }
 
     private void getUser() {
-        System.out.print("ID: ");
-        Long id = scanner.nextLong();
+        System.out.print("Введите ID: ");
+        Long id = Long.parseLong(scanner.nextLine());
         User user = userDao.getUserById(id);
         System.out.println(user != null ? user : "Пользователь не найден");
     }
 
     private void getAllUsers() {
         List<User> users = userDao.getAllUsers();
-        users.forEach(System.out::println);
+        if (users.isEmpty()) {
+            System.out.println("Список пользователей пуст");
+        } else {
+            users.forEach(System.out::println);
+        }
     }
 
     private void updateUser() {
         System.out.print("ID пользователя для обновления: ");
-        Long id = scanner.nextLong();
-        scanner.nextLine();
+        Long id = Long.parseLong(scanner.nextLine());
 
         User user = userDao.getUserById(id);
         if (user == null) {
@@ -83,25 +95,27 @@ public class UserService {
             return;
         }
 
-        System.out.print("Новое имя (" + user.getName() + "): ");
+        System.out.print("Новое имя (текущее: " + user.getName() + "): ");
         String name = scanner.nextLine();
         if (!name.isBlank()) user.setName(name);
 
-        System.out.print("Новый email (" + user.getEmail() + "): ");
+        System.out.print("Новый email (текущий: " + user.getEmail() + "): ");
         String email = scanner.nextLine();
         if (!email.isBlank()) user.setEmail(email);
 
-        System.out.print("Новый возраст (" + user.getAge() + "): ");
+        System.out.print("Новый возраст (текущий: " + user.getAge() + "): ");
         String ageStr = scanner.nextLine();
-        if (!ageStr.isBlank()) user.setAge(Integer.parseInt(ageStr));
+        if (!ageStr.isBlank()) {
+            user.setAge(Integer.parseInt(ageStr));
+        }
 
         userDao.updateUser(user);
         System.out.println("Пользователь обновлён");
     }
 
     private void deleteUser() {
-        System.out.print("ID для удаления: ");
-        Long id = scanner.nextLong();
+        System.out.print("ID пользователя для удаления: ");
+        Long id = Long.parseLong(scanner.nextLine());
         userDao.deleteUser(id);
         System.out.println("Пользователь удалён");
     }
