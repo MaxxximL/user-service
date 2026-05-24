@@ -7,10 +7,24 @@ import java.util.List;
 import java.util.Scanner;
 
 public class UserService {
+
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
-    private final UserDao userDao = new UserDaoImpl();
-    private final Scanner scanner = new Scanner(System.in);
+    private final UserDao userDao;
+    private final Scanner scanner;
+
+    public UserService() {
+        this(new UserDaoImpl(), new Scanner(System.in));
+    }
+
+    public UserService(UserDao userDao, Scanner scanner) {
+        this.userDao = userDao;
+        this.scanner = scanner;
+    }
+
+    public UserService(UserDao userDao) {
+        this(userDao, new Scanner(System.in));
+    }
 
     public void start() {
         log.info("UserService запущен...");
@@ -50,14 +64,14 @@ public class UserService {
         System.out.print("Выберите действие: ");
     }
 
-    private void createUser() {
+    void createUser() {
         try {
             System.out.print("Имя: ");
-            String name = scanner.nextLine();
+            String name = scanner.nextLine().trim();
             System.out.print("Email: ");
-            String email = scanner.nextLine();
+            String email = scanner.nextLine().trim();
             System.out.print("Возраст: ");
-            Integer age = Integer.parseInt(scanner.nextLine());
+            Integer age = Integer.parseInt(scanner.nextLine().trim());
 
             User user = new User(name, email, age);
             userDao.saveUser(user);
@@ -69,14 +83,14 @@ public class UserService {
         }
     }
 
-    private void getUser() {
+    void getUser() {
         System.out.print("Введите ID: ");
-        Long id = Long.parseLong(scanner.nextLine());
+        Long id = Long.parseLong(scanner.nextLine().trim());
         User user = userDao.getUserById(id);
         System.out.println(user != null ? user : "Пользователь не найден");
     }
 
-    private void getAllUsers() {
+    void getAllUsers() {
         List<User> users = userDao.getAllUsers();
         if (users.isEmpty()) {
             System.out.println("Список пользователей пуст");
@@ -85,9 +99,9 @@ public class UserService {
         }
     }
 
-    private void updateUser() {
+    void updateUser() {
         System.out.print("ID пользователя для обновления: ");
-        Long id = Long.parseLong(scanner.nextLine());
+        Long id = Long.parseLong(scanner.nextLine().trim());
 
         User user = userDao.getUserById(id);
         if (user == null) {
@@ -96,15 +110,15 @@ public class UserService {
         }
 
         System.out.print("Новое имя (текущее: " + user.getName() + "): ");
-        String name = scanner.nextLine();
+        String name = scanner.nextLine().trim();
         if (!name.isBlank()) user.setName(name);
 
         System.out.print("Новый email (текущий: " + user.getEmail() + "): ");
-        String email = scanner.nextLine();
+        String email = scanner.nextLine().trim();
         if (!email.isBlank()) user.setEmail(email);
 
         System.out.print("Новый возраст (текущий: " + user.getAge() + "): ");
-        String ageStr = scanner.nextLine();
+        String ageStr = scanner.nextLine().trim();
         if (!ageStr.isBlank()) {
             user.setAge(Integer.parseInt(ageStr));
         }
@@ -113,9 +127,9 @@ public class UserService {
         System.out.println("Пользователь обновлён");
     }
 
-    private void deleteUser() {
+    void deleteUser() {
         System.out.print("ID пользователя для удаления: ");
-        Long id = Long.parseLong(scanner.nextLine());
+        Long id = Long.parseLong(scanner.nextLine().trim());
         userDao.deleteUser(id);
         System.out.println("Пользователь удалён");
     }

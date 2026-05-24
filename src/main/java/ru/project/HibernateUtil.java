@@ -5,16 +5,23 @@ import org.hibernate.cfg.Configuration;
 
 public class HibernateUtil {
 
-    private static final SessionFactory sessionFactory = buildSessionFactory();
+    private static SessionFactory sessionFactory;
 
-    private static SessionFactory buildSessionFactory() {
+    static {
+        buildSessionFactory();
+    }
+
+    private static void buildSessionFactory() {
         try {
             Configuration configuration = new Configuration();
 
             configuration.setProperty("hibernate.connection.driver_class", "org.postgresql.Driver");
-            configuration.setProperty("hibernate.connection.url", "jdbc:postgresql://localhost:5432/userdb");
-            configuration.setProperty("hibernate.connection.username", "postgres");
-            configuration.setProperty("hibernate.connection.password", "postgres");
+            configuration.setProperty("hibernate.connection.url",
+                    System.getProperty("hibernate.connection.url", "jdbc:postgresql://localhost:5432/userdb"));
+            configuration.setProperty("hibernate.connection.username",
+                    System.getProperty("hibernate.connection.username", "postgres"));
+            configuration.setProperty("hibernate.connection.password",
+                    System.getProperty("hibernate.connection.password", "postgres"));
 
             configuration.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
 
@@ -24,12 +31,15 @@ public class HibernateUtil {
 
             configuration.addAnnotatedClass(User.class);
 
+            if (sessionFactory != null && !sessionFactory.isClosed()) {
+                sessionFactory.close();
+            }
+
+            sessionFactory = configuration.buildSessionFactory();
             System.out.println("Hibernate инициализирован");
 
-            return configuration.buildSessionFactory();
-
         } catch (Exception e) {
-            System.err.println("Ошибка при создании SessionFactory:" + e.getMessage());
+            System.err.println("Ошибка при создании SessionFactory: " + e.getMessage());
             e.printStackTrace();
             throw new ExceptionInInitializerError(e);
         }
@@ -37,6 +47,10 @@ public class HibernateUtil {
 
     public static SessionFactory getSessionFactory() {
         return sessionFactory;
+    }
+
+    public static void rebuildSessionFactory() {
+        buildSessionFactory();
     }
 
     public static void shutdown() {
