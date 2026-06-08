@@ -1,0 +1,21 @@
+spring:
+  kafka:
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  mail:
+    host: localhost
+    port: ${greenmail.smtp.port:3025}
+    username: test
+    password: test
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
+      mail.debug: true
+
+server:
+  port: 8086
+
+logging:
+  level:
+    org.springframework.kafka: DEBUG

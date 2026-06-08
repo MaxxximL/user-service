@@ -1,5 +1,6 @@
 package ru.project;
 
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,9 +11,11 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final KafkaTemplate<String, UserEvent> kafkaTemplate;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, KafkaTemplate<String, UserEvent> kafkaTemplate) {
         this.userRepository = userRepository;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     public UserDto create(UserDto dto) {
@@ -22,7 +25,21 @@ public class UserService {
         user.setAge(dto.getAge());
 
         User saved = userRepository.save(user);
+
+        kafkaTemplate.send("user-events",
+                new UserEvent("USER_CREATED", saved.getEmail(), saved.getName()));
+
         return toDto(saved);
+    }
+
+    public void delete(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+        userRepository.deleteById(id);
+
+        kafkaTemplate.send("user-events",
+                new UserEvent("USER_DELETED", user.getEmail(), user.getName()));
     }
 
     @Transactional(readOnly = true)
@@ -46,10 +63,6 @@ public class UserService {
         if (dto.getAge() != null) user.setAge(dto.getAge());
 
         return toDto(userRepository.save(user));
-    }
-
-    public void delete(Long id) {
-        userRepository.deleteById(id);
     }
 
     private UserDto toDto(User user) {

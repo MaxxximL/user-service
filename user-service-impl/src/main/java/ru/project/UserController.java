@@ -1,6 +1,8 @@
 package ru.project;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +18,8 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping
-    public ResponseEntity<UserDto> create(@RequestBody UserDto userDto) {
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<UserDto> create(@RequestBody @Valid UserDto userDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(userDto));
     }
 
@@ -31,8 +33,8 @@ public class UserController {
         return ResponseEntity.ok(userService.getAll());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<UserDto> update(@PathVariable Long id, @RequestBody UserDto userDto) {
+    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<UserDto> update(@PathVariable Long id, @RequestBody @Valid UserDto userDto) {
         return ResponseEntity.ok(userService.update(id, userDto));
     }
 
