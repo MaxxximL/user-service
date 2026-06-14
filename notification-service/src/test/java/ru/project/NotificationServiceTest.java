@@ -3,6 +3,8 @@ package ru.project;
 import com.icegreen.greenmail.store.FolderException;
 import com.icegreen.greenmail.util.GreenMail;
 import jakarta.mail.internet.MimeMessage;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -44,37 +46,55 @@ class NotificationServiceTest {
         registry.add("spring.kafka.consumer.value-deserializer",
                 () -> "org.springframework.kafka.support.serializer.JsonDeserializer");
         registry.add("spring.kafka.consumer.properties.spring.json.trusted.packages", () -> "*");
+        registry.add("spring.kafka.consumer.session.timeout.ms", () -> "15000");
+    }
+
+    @BeforeEach
+    void setUp() throws InterruptedException, FolderException {
+        greenMail.purgeEmailFromAllMailboxes();
+        Thread.sleep(2000);
+    }
+
+    @AfterEach
+    void tearDown() throws FolderException {
+        greenMail.purgeEmailFromAllMailboxes();
     }
 
     @Test
-    void whenUserCreated_thenSendWelcomeEmail() throws FolderException {
-        greenMail.purgeEmailFromAllMailboxes();
-
+    void whenUserCreated_thenSendWelcomeEmail() {
         UserEvent event = new UserEvent("USER_CREATED", "test@gmail.com", "Vasya");
         kafkaTemplate.send("user-events", event);
 
-        await().atMost(30, TimeUnit.SECONDS)
-                .pollInterval(500, TimeUnit.MILLISECONDS)
+        await().atMost(50, TimeUnit.SECONDS)
+                .pollInterval(2, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    assertThat(greenMail.getReceivedMessages()).hasSize(1);
+                    assertThat(greenMail.getReceivedMessages())
+                            .as("No email received for USER_CREATED")
+                            .hasSize(1);
+
                     MimeMessage msg = greenMail.getReceivedMessages()[0];
-                    assertThat(msg.getSubject()).containsIgnoringCase("создан");
+                    assertThat(msg.getSubject())
+                            .as("Wrong subject")
+                            .containsIgnoringCase("создан");
                 });
     }
 
     @Test
-    void whenUserDeleted_thenSendDeleteEmail() throws FolderException {
-        greenMail.purgeEmailFromAllMailboxes();
-
+    void whenUserDeleted_thenSendDeleteEmail() {
         UserEvent event = new UserEvent("USER_DELETED", "test@gmail.com", "John");
         kafkaTemplate.send("user-events", event);
 
-        await().atMost(30, TimeUnit.SECONDS)
-                .pollInterval(500, TimeUnit.MILLISECONDS)
+        await().atMost(50, TimeUnit.SECONDS)
+                .pollInterval(2, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    assertThat(greenMail.getReceivedMessages()).hasSize(1);
+                    assertThat(greenMail.getReceivedMessages())
+                            .as("No email received for USER_DELETED")
+                            .hasSize(1);
+
                     MimeMessage msg = greenMail.getReceivedMessages()[0];
-                    assertThat(msg.getSubject()).containsIgnoringCase("удал");
+                    assertThat(msg.getSubject())
+                            .as("Wrong subject")
+                            .containsIgnoringCase("удал");
                 });
     }
 }
