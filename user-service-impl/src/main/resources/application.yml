@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: user-service
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/userdb}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
@@ -35,3 +37,11 @@ springdoc:
     enabled: true
   packages-to-scan: ru.project
   paths-to-match: /api/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    hostname: localhost

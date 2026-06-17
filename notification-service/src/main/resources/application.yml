@@ -1,8 +1,16 @@
 spring:
+  application:
+    name: notification-service
   kafka:
     producer:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-
+      eureka:
+        client:
+          service-url:
+            defaultZone: http://localhost:8761/eureka/
+        instance:
+          prefer-ip-address: true
+          hostname: localhost
   mail:
     host: localhost
     port: ${greenmail.smtp.port:3025}
