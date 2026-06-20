@@ -7,6 +7,9 @@ spring:
 
   cloud:
     gateway:
+      httpclient:
+        connect-timeout: 10000
+        response-timeout: 30s
       routes:
         - id: user-service
           uri: lb://user-service
@@ -15,7 +18,6 @@ spring:
           filters:
             - RewritePath=/api/users/(?<segment>.*), /api/users/${segment}
 
-
         - id: notification-service
           uri: lb://notification-service
           predicates:
@@ -23,13 +25,12 @@ spring:
           filters:
             - RewritePath=/api/notifications/(?<segment>.*), /api/notifications/${segment}
 
-
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
-    fetch-registry: true
     register-with-eureka: true
+    fetch-registry: true
   instance:
     prefer-ip-address: true
     hostname: localhost

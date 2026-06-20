@@ -1,10 +1,11 @@
 spring:
   application:
     name: user-service
+
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/userdb}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    url: jdbc:postgresql://localhost:5432/userdb
+    username: postgres
+    password: postgres
 
   jpa:
     hibernate:
@@ -15,33 +16,25 @@ spring:
         format_sql: true
 
   kafka:
-    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 server:
   port: 8083
-  servlet:
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
-
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    enabled: true
-  api-docs:
-    path: /v3/api-docs
-    enabled: true
-  packages-to-scan: ru.project
-  paths-to-match: /api/**
 
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
   instance:
     prefer-ip-address: true
-    hostname: localhost
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs

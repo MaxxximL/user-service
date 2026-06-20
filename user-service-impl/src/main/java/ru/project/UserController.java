@@ -6,9 +6,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.List;
 
@@ -33,10 +35,13 @@ public class UserController {
         UserDto created = userService.create(userDto);
 
         EntityModel<UserDto> resource = EntityModel.of(created);
-        resource.add(WebMvcLinkBuilder.linkTo(
-                WebMvcLinkBuilder.methodOn(UserController.class).getUserById(created.getId())).withSelfRel());
-        resource.add(WebMvcLinkBuilder.linkTo(
-                WebMvcLinkBuilder.methodOn(UserController.class).getAllUsers()).withRel("users"));
+        String uri = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(created.getId())
+                .toUriString();
+
+        resource.add(Link.of(uri).withSelfRel());
+        resource.add(Link.of("/api/users").withRel("users"));
 
         return ResponseEntity.created(WebMvcLinkBuilder.linkTo(
                         WebMvcLinkBuilder.methodOn(UserController.class).getUserById(created.getId())).toUri())

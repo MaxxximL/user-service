@@ -1,5 +1,10 @@
+FROM eclipse-temurin:21-jdk-jammy AS build
+WORKDIR /app
+COPY . .
+RUN ./mvnw clean package -DskipTests -pl api-gateway -am
+
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
-COPY target/*.jar app.jar
+COPY --from=build /app/api-gateway/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
